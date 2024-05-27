@@ -40,12 +40,9 @@ GROUP BY customer_id
 
 2. Reverse the numbering of the query from a part so each customer’s most recent visit is labeled 1, then write another query that uses this one as a subquery (or temp table) and filters the results to only the customer’s most recent visit.
 
-SELECT DISTINCT customer_id, market_date
-FROM(SELECT customer_id, market_date,
-DENSE_RANK() OVER (PARTITION BY customer_id ORDER BY market_date DESC) AS recent_visit
-FROM customer_purchases)x
-WHERE x.recent_visit=1
-
+SELECT cp.*,
+DENSE_RANK() OVER (PARTITION BY customer_id ORDER BY market_date) AS visit_number
+FROM customer_purchases AS cp
 
 3. Using a COUNT() window function, include a value along with each row of the customer_purchases table that indicates how many different times that customer has purchased that product_id.
 
@@ -77,18 +74,31 @@ FROM product
 
 **HINT**: There are a possibly a few ways to do this query, but if you're struggling, try the following: 1) Create a CTE/Temp Table to find sales values grouped dates; 2) Create another CTE/Temp table with a rank windowed function on the previous query to create "best day" and "worst day"; 3) Query the second temp table twice, once for the best day, once for the worst day, with a UNION binding them. 
 
-SELECT *
-FROM(
-SELECT market_date,
-(quantity * cost_to_customer_per_qty) as total_sales,
-dense_rank()OVER (ORDER BY  (quantity * cost_to_customer_per_qty) DESC) as sale_rank
-FROM customer_purchases)x
-WHERE x.sale_rank=1
+;WITH sales_per_market AS (
+SELECT
+market_date,
+ROUND(SUM(quantity * cost_to_customer_per_qty),2) AS sales
+
+FROM customer_purchases
+GROUP BY market_date
+)
+
+,market_dates_ranked_by_sales AS (
+SELECT
+market_date,
+sales,
+RANK() OVER (ORDER BY sales) AS sales_rank_asc,
+RANK() OVER (ORDER BY sales DESC) AS sales_rank_desc
+
+FROM sales_per_market
+)
+
+SELECT market_date, sales, sales_rank_desc AS sales_rank
+FROM market_dates_ranked_by_sales
+WHERE sales_rank_asc = 1
+
 UNION
-SELECT *
-FROM(
-SELECT market_date,
-(quantity * cost_to_customer_per_qty) as total_sales,
-dense_rank()OVER (ORDER BY  (quantity * cost_to_customer_per_qty) DESC) as sale_rank
-FROM customer_purchases)x
-WHERE x.sale_rank=419
+
+SELECT market_date, sales, sales_rank_desc AS sales_rank
+FROM market_dates_ranked_by_sales
+WHERE sales_rank_desc = 1
