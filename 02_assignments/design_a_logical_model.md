@@ -18,10 +18,12 @@ The store wants to keep customer addresses. Propose two architectures for the CU
 _Hint, search type 1 vs type 2 slowly changing dimensions._
 
 Type 1
- ![image](https://github.com/monzchan/SQL/assets/166637673/5a755a5a-1705-4b22-808f-e00bc37fe8d8)
+![image](https://github.com/monzchan/SQL/assets/166637673/7b275804-09bb-4439-9695-4ab2b8393348)
+
 
 Type 2 
- ![image](https://github.com/monzchan/SQL/assets/166637673/0b1a0ced-c5d7-4367-8318-8c14d15b72d0)
+![image](https://github.com/monzchan/SQL/assets/166637673/a06d2c21-2778-4364-af2e-28c869a6171d)
+
 
 
 For type 2 architecture, privacy issue raised since customer data will be retained in the data bank forever. It enables data scientist to track historically significant attributes. But for type 1 slowly changing dimension, the data about customer’s information will be overwritten by updated data. So, only the recent data will be kept.
